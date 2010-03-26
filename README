@@ -1,0 +1,30 @@
+uomap: crazy lil project to make a minimal boot system for OMAP
+
+some crazy intro:
+Primarily meant as quick hack access, from various board bringups
+I always saw that fundamental process is a basic u-boot and kernel
+running on a basic busybox - usually u need to apply few patchsets to get things
+working for each of them..
+
+so thought for sometime about doing bitbake after being almost brainwashed
+by a few OpenEmbedded junkies ;).. but then robclark showed me git submodules
+and I am hooked big time.
+
+Disclaimer: I've been too long a kernel hacker to loose the roots..
+
+Time for some objectives:
+a) make board_name_defconfig
+b) make
+you should have:
+i) target directory with basic busybox fs
+ii) binaries directory with uImage, u-boot, MLO (if required)
+
+just download a codesourcery tool chain:
+http://www.codesourcery.com/sgpp/lite/arm/portal/subscription3057
+
+Documentation:
+should eventually be in docs/ directory
+
+i will figure out most of how things work later on I suppose..
+any ideas, feel free to email me:
+mailto: menon dot nishanth at gmail dot com

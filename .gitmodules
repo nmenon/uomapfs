@@ -1,0 +1,9 @@
+[submodule "u-boot"]
+	path = u-boot
+	url = git://git.denx.de/u-boot.git
+[submodule "busybox"]
+	path = busybox
+	url = git://busybox.net/busybox.git
+[submodule "linux-omap"]
+	path = linux-omap
+	url = git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
