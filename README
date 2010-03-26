@@ -1,4 +1,4 @@
-uomap: crazy lil project to make a minimal boot system for OMAP
+uomapfs: crazy lil project to make a minimal boot system for OMAP
 
 some crazy intro:
 Primarily meant as quick hack access, from various board bringups
