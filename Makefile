@@ -68,7 +68,7 @@ endif
 
 git:
 	$(Q)git submodule status|grep '^-' && git submodule init && \
-		git submodule update
+		git submodule update || echo 'nothin to update'
 
 bootloader: git .config $(bootloader)/$(bootloader_image_location)
 	$(Q)install -d $(target_boot_files_dir)
@@ -90,7 +90,6 @@ busymkdir: .config
 		$(Q)install -d $(target_fs_dir)/$$d;\
 	done
 
-
 $(BUSYBOX)/busybox: .config $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX)
 
@@ -98,13 +97,13 @@ $(BUSYBOX)/.config: .config git
 	$(Q)cp $(busybox_defconfig_file) $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX) oldconfig
 
-kernel: git fs $(kernel)/$(kernel_image_location)
+kernel: git fs .config $(kernel)/$(kernel_image_location)
 	$(Q)$(MAKE) -C$(kernel) INSTALL_MOD_STRIP=1 \
 	INSTALL_MOD_PATH=$(target_fs_dir) modules_install
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(kernel)/$(kernel_image_location) $(target_boot_files_dir)
 
-$(kernel)/$(kernel_image_location): $(kernel)/.config
+$(kernel)/$(kernel_image_location): .config $(kernel)/.config
 	$(Q)$(MAKE) -C $(kernel) $(kernel_image)
 	$(Q)$(MAKE) -C $(kernel) modules
 
