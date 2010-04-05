@@ -1,0 +1,5 @@
+none		/dev/pts	devpts		mode=620	0 0
+proc		/proc		proc		defaults	0 0
+sys		/sys		sysfs		defaults	0 0
+dbg		/dbg		debugfs		defaults	0 0
+

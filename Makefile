@@ -31,14 +31,81 @@ Q := $(if $(VERBOSE:1=),@)
 # Our default directories
 SCRIPT_DIR := scripts
 CONFIG_DIR := configs
+BUSYBOX := busybox
+ETC_SCRIPTS :=$(CONFIG_DIR)/etc
 
 # Our standard scripts
 MAKECONFIG := $(SCRIPT_DIR)/make.config
+GETVAR := $(SCRIPT_DIR)/config.var
+PWD := $(shell pwd)
 
+-include .config
+
+target_fs_dir ?= $(PWD)/target/rootfs
+target_boot_files_dir ?= $(PWD)/target/boot
+
+ifeq ("$(busybox_defconfig_file)", "")
+  busybox_defconfig_file := $(PWD)/$(CONFIG_DIR)/busybox_generic.config
+endif
 # Phony rules
-.PHONY: all distclean clean
+.PHONY: all distclean clean .config bootloader bootloader_defconf fs
 
-all:
+.EXPORT_ALL_VARIABLES:
 
-%config:
+all: fs bootloader kernel
+
+distclean:
+ifneq ("$(bootloader)", "")
+	$(Q)$(MAKE) -C $(bootloader) distclean
+endif
+ifneq ("$(kernel)", "")
+	$(Q)$(MAKE) -C $(kernel) distclean
+endif
+ifneq ("$(BUSYBOX)", "")
+	$(Q)$(MAKE) -C $(BUSYBOX) distclean
+endif
+	$(Q)rm -rf .config $(target_fs_dir) $(target_boot_files_dir) target
+
+bootloader: $(bootloader)/$(bootloader_image_location)
+	$(Q)install -d $(target_boot_files_dir)
+	$(Q)install $(bootloader)/$(bootloader_image_location) \
+		$(target_boot_files_dir)
+
+$(bootloader)/$(bootloader_image_location): $(bootloader)/include/config.h
+	$(Q)$(MAKE) -C $(bootloader) $(bootloader_image)
+
+$(bootloader)/include/config.h:
+	$(Q)$(MAKE) -C $(bootloader) $(bootloader_defconfig)
+	
+fs: $(BUSYBOX)/busybox busymkdir
+	$(Q)fakeroot $(MAKE) -C$(BUSYBOX) CONFIG_PREFIX=$(target_fs_dir) install
+	$(Q)cp -rf $(PWD)/$(ETC_SCRIPTS)/* $(target_fs_dir)/etc/
+
+busymkdir:
+	for d in lib etc dev dbg proc sys var/log; do \
+		$(Q)install -d $(target_fs_dir)/$$d;\
+	done
+
+
+$(BUSYBOX)/busybox: $(BUSYBOX)/.config
+	$(Q)$(MAKE) -C $(BUSYBOX)
+
+$(BUSYBOX)/.config:
+	$(Q)cp $(busybox_defconfig_file) $(BUSYBOX)/.config
+	$(Q)$(MAKE) -C $(BUSYBOX) oldconfig
+
+kernel: fs $(kernel)/$(kernel_image_location)
+	$(Q)$(MAKE) -C$(kernel) INSTALL_MOD_STRIP=1 \
+	INSTALL_MOD_PATH=$(target_fs_dir) modules_install
+	$(Q)install -d $(target_boot_files_dir)
+	$(Q)install $(kernel)/$(kernel_image_location) $(target_boot_files_dir)
+
+$(kernel)/$(kernel_image_location): $(kernel)/.config
+	$(Q)$(MAKE) -C $(kernel) $(kernel_image)
+	$(Q)$(MAKE) -C $(kernel) modules
+
+$(kernel)/.config:
+	$(Q)$(MAKE) -C $(kernel) $(kernel_defconfig)
+
+%defconfig:
 	$(Q)$(MAKECONFIG) $(if $(VERBOSE:0=),-v) -d $(CONFIG_DIR) -c $@

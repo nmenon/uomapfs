@@ -1,20 +1,18 @@
 #
 # Build options for OMAP3430 SDP3430
 #
-ARCH = arm
-CROSS_COMPILE = arm-none-linux-gnueabi-
+ARCH ?= arm
+CROSS_COMPILE ?= arm-none-linux-gnueabi-
 
-kernel = linux-omap
-kernel_defconfig = omap_3430sdp_defconfig
-kernel_image = uImage
-kernel_image_location = arch/arm/boot/uImage
+kernel ?= linux-omap
+kernel_defconfig ?= omap_3430sdp_defconfig
+kernel_image ?= uImage
+kernel_image_location ?= arch/arm/boot/uImage
 
-bootloader =  u-boot
-bootloader_defconfig = omap3_sdp3430_config
-bootloader_image = 
-bootloader_image_location = u-boot.bin
+bootloader ?=  u-boot
+bootloader_defconfig ?= omap3_sdp3430_config
+bootloader_image ?= 
+bootloader_image_location ?= u-boot.bin
 
-busybox_defconfig_file = 
+busybox_defconfig_file ?= 
 
-target_fs_dir = target/rootfs
-target_boot_files_dir = target/boot

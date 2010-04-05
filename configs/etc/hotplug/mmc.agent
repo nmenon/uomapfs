@@ -1,0 +1,45 @@
+#!/bin/sh
+
+MNT="/mnt/mmc"
+
+#If A MMC/SD Card is inserted in MMC/SD slot 
+if [ "$ACTION" = "add" ] ; then
+sleep 1
+
+	#Create a directory /mnt/mmc
+	mkdir -p $MNT
+
+	# Try Mounting VFAT 
+	mount -t vfat -o sync /dev/mmc/blk0/part1 $MNT 
+        ret=$?
+	# Check if VFAT is mounted on MMC/SD
+        if [ $ret -ne 0 ]; then 
+
+	   # Try mounting EXT2 File system on MMC/SD
+           mount -t ext2 -o sync /dev/mmc/blk0/part1 $MNT 
+           ret=$?
+	
+	    # Check if ext2 is mounted on MMC/SD
+           if [ $ret -ne 0 ]; then 
+           mount -t ext2 -o sync /dev/mmc/blk0/disc $MNT 
+           ret=$?
+	
+             if [ $ret -ne 0 ]; then 
+             mount -t vfat -o sync /dev/mmc/blk0/disc $MNT 
+             ret=$?
+
+
+              # Check if VFAT/EXT2 is mounted on MMC/SD
+                 if [ $ret -ne 0]; then
+	            echo "Unable to Mount the VFAT/EXT2 filesystem">>/tmp/hotplug
+	            rmdir $MNT
+                 fi
+             fi
+           fi
+        fi    
+/bin/sync
+else
+	umount $MNT
+fi
+
+

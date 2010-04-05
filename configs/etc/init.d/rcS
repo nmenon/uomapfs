@@ -1,0 +1,228 @@
+#!/bin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+mkdev () {
+	p="/dev/$1"
+	if [ ! -b "$p" ] && [ ! -c "$p" ]; then
+		rm -f $p
+		mknod -m $2 $p $3 $4 $5
+	fi
+}
+
+# goto the init.d directory
+cd /etc/init.d
+
+# get the system configuration info
+. ./sysconfig
+
+# Mount /proc
+echo -n "Mounting proc : "
+if mount -n -t proc /proc /proc; then
+	echo "OK"
+else
+	# pretty much everything will fail without /proc, so just abort the init
+	echo "Error in /proc filesystem - init aborted"
+	# this exit won't work if there is no console created yet
+	exit 1
+fi
+
+# do we have sysfs?
+SYSFS=0
+cat /proc/filesystems | grep -q sysfs
+if [ $? -eq 0 ] ; then
+	echo -n "Mounting sysfs : "
+	if mount -n -t sysfs none /sys; then
+		SYSFS=1
+		echo "OK"
+	fi
+fi
+
+# do we have devfs?
+DEVFS=0
+cat /proc/filesystems | grep -q devfs
+if [ $? -eq 0 ] ; then
+#	echo -n "Mounting devfs : "
+#	if mount -n -t devfs none /dev; then
+#		echo "OK"
+#	fi
+	DEVFS=1
+else
+# do we have tmpfs?
+	cat /proc/filesystems | grep -q tmpfs
+	if [ $? -eq 0 ]; then
+	echo -n "Mounting /dev : "
+		if mount -n -t tmpfs none /dev; then echo "OK"; fi
+	else
+# is the dev directory writable?
+		if ! touch /dev/.write; then
+			echo "Unable to write to /dev - init aborted"
+			exit 1
+		fi
+	fi
+fi
+
+# at this point we have a good /dev but may not have any devices
+# create devices if needed - use /dev/null as a trigger
+if [ ! -c /dev/null ]; then
+	# if we have a console - get ride of it since we are about to recreate
+	if [ -e /dev/console ] ; then rm /dev/console; fi
+	# see if we need mdev
+	if [ -x /sbin/mdev ] && [ $SYSFS -eq 1 ] && uname -r | grep -q ^2.6; then
+		echo "Creating local mdev devices"
+		mdev -s
+		echo "/sbin/mdev" > /proc/sys/kernel/hotplug
+	else
+	# no mdev - go manual
+		echo "Creating local devices"
+		mkdev mem 0640 c 1 1
+		mkdev mem 0640 c 1 2
+		mkdev null 0666 c 1 3
+		mkdev port 0640 c 1 4
+		mkdev zero 0666 c 1 5
+		mkdev full 0666 c 1 7
+		mkdev random 0644 c 1 8
+		mkdev urandom 0644 c 1 9
+		mkdev tty 0666 c 5 0
+		mkdev console 0660 c 5 1
+		mkdev ttyS0 0660 c 4 64
+		mkdev fb0 0666 c 29 0
+		mkdev mixer 0660 c 14 0
+		mkdev dsp 0660 c 14 3
+		mkdev event0 0644 c 13 64
+		mkdev event1 0644 c 13 65
+		mkdev video0 0660 c 81 0
+		mkdev video1 0660 c 81 1
+		mkdev video2 0660 c 81 2
+	fi
+	# create compatibility symlinks
+	for dir in fb sound input v4l video; do
+		mkdir /dev/$dir
+	done
+	ln -s /dev/fb0 /dev/fb/0
+	ln -s /dev/dsp /dev/sound/
+	ln -s /dev/mixer /dev/sound/
+	ln -s /dev/event0 /dev/input/
+	ln -s /dev/event1 /dev/input/
+	for i in 0 1 2; do
+		ln -s /dev/video$i /dev/video/$i
+		ln -s /dev/video$i /dev/v4l/
+	done
+fi
+
+# restart with the console device that was just created
+exec >/dev/console 2>/dev/console </dev/console
+
+hostname $HOSTNAME
+echo ""
+echo "******************************************"
+echo "Starting System Init for $HOSTNAME"
+if [ -n "$RELEASE_ID" ] ; then
+echo "Release: $RELEASE_ID"
+fi
+echo -n "Kernel: "
+uname -a
+echo "******************************************"
+
+# save off the dmsg buffer and clear it
+if [ -x /bin/dmesg ] ; then
+	echo -n "Saving kernel ring buffer : "
+	if dmesg -c > /var/log/dmesg; then echo "OK"; else echo "Failed"; fi
+fi
+
+# fix up devices if we are using devfs
+if [ $DEVFS -eq 1 ]; then
+	echo -n "Fixing up Devices : "
+
+	# create the tty devices
+#	maj_no=`grep " tty$" /proc/devices | cut -b1,2,3`
+#	if [ -z "$maj_no" ] ; then maj_no=4; fi
+#	makedevs /dev/tty c $maj_no 0 0 63
+                                                                                
+	# fix the framebuffer
+	ln -s /dev/fb/0 /dev/fb0
+
+	# make the serial console have a canonical location
+	ln -s /dev/tts/0 /dev/ttyS0
+
+	echo "OK"
+fi
+
+# do we have dev/pts?
+cat /proc/filesystems | grep -q devpts
+if [ $? -eq 0 ] ; then
+	echo -n "Mounting devpts : "
+	mkdir -p /dev/pts
+	if mount -n -t devpts none /dev/pts; then echo "OK"; fi
+fi
+
+# fix up sound devices if they are in an alternative location
+if [ ! -e "/dev/dsp" -a -e "/dev/sound/dsp" ]; then
+	ln -s /dev/sound/dsp /dev/dsp
+fi
+if [ ! -e "/dev/mixer" -a -e "/dev/sound/mixer" ]; then
+	ln -s /dev/sound/mixer /dev/mixer
+fi
+                                                                                
+
+# Configure network
+if [ -x /sbin/ifconfig ] ; then
+	if ifconfig 2>/dev/null > /dev/null; then
+		echo "Setting up networking"
+		echo -n "Configuring lo : "
+		if ifconfig lo 127.0.0.1; then echo "OK"; else echo "Failed"; fi
+
+		echo -n "Configuring eth0 : "
+		# check eth0 - see if it was configured by the kernel
+		ethcfg=`ifconfig eth0 | sed -n -e "/^.*inet/s/^.*addr:\([0-9.]*\).*$/\1/p"`
+		if [ -n "$ethcfg" ] ; then
+			# configured by the kernel - we are ok
+			echo "OK - $ethcfg"
+			NETWORKING=YES
+		else
+			if [ -x /sbin/ifup ] ; then
+				# try using ifup
+				if ifup eth0;
+					then echo "OK"; NETWORKING=YES; else echo "Failed"; fi
+			else
+				# no way to configure - fail it
+				echo "Skipped - no config data found"
+			fi
+		fi
+	fi
+fi
+
+# if we successfully brought up the network - start network processes
+if [ -n "$NETWORKING" ] ; then
+	# telnetd
+	if [ -x /usr/sbin/telnetd ] ; then
+		echo -n "Starting telnetd : "
+		if /usr/sbin/telnetd ; then echo "OK"; else echo "Failed"; fi
+	fi
+fi
+
+# start the loggers
+if [ -x /sbin/syslogd ] ; then
+	echo -n "Starting syslogd : "
+	if syslogd; then
+		echo "OK"
+		# now that syslogd is up - start klogd
+		if [ -x /sbin/klogd ] ; then
+			echo -n "Starting klogd : "
+			if klogd; then echo "OK"; else echo "Failed"; fi
+		fi
+	else
+		echo "Failed"
+	fi
+fi
+	
+
+# Mount the rest of the file systems
+echo -n "Mounting filesystems : "
+if mount -a ; then echo "OK"; fi
+
+mount -t usbfs none /proc/bus/usb/
+
+if [ -f /sys/power/fb_timeout_value ]; then
+	/bin/echo -n 0 > /sys/power/fb_timeout_value
+fi

@@ -1,29 +1,29 @@
 what the heck is a defconfig?
 ----------------------------
 defconfig is default configuration used to describe the platform
-configuration
+configuration, similar to makefile language
 
 structure of uomapfs configuration:
 ----------------------------------
 
-ARCH = architecture you'd want (arm)
-CROSS_COMPILE = cross compiler to use
+ARCH ?= architecture you'd want (arm)
+CROSS_COMPILE ?= cross compiler to use as default
 
-kernel = choice of folder for the kernel
-kernel_defconfig = default configuration to use
-kernel_image = what type of image to build - uImage, zImage etc
-kernel_image_location = e.g. arch/arm/boot/uImage
+kernel ?= choice of folder for the kernel
+kernel_defconfig ?= default configuration to use
+kernel_image ?= what type of image to build - uImage, zImage etc
+kernel_image_location ??= e.g. arch/arm/boot/uImage
 
-bootloader =  choice of folder for u-boot
-bootloader_defconfig = default config for u-boot to use
-bootloader_image = usually null for u-boot.bin for u-boot
-bootloader_image_location = e.g. u-boot.bin
+bootloader ?=  choice of folder for u-boot
+bootloader_defconfig ?= default config for u-boot to use
+bootloader_image ?= usually null for u-boot.bin for u-boot
+bootloader_image_location ?= e.g. u-boot.bin
 
-busybox_defconfig_file = choice of defconfig (use null for defconfig or a file
+busybox_defconfig_file ?= choice of defconfig (use null for defconfig or a file
 		if you like custom .config to be used)
 
-target_fs_dir = target/rootfs (overridden by $PREFIX_FS variable if used)
-target_boot_files_dir = target/boot (overridden by $PREFIX_BOOT variable
-		if used)
+# use the following if you need them
+target_fs_dir ?= target/rootfs
+target_boot_files_dir ?= target/boot 
 
 ----------------
