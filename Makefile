@@ -48,11 +48,11 @@ ifeq ("$(busybox_defconfig_file)", "")
   busybox_defconfig_file := $(PWD)/$(CONFIG_DIR)/busybox_generic.config
 endif
 # Phony rules
-.PHONY: all distclean clean .config bootloader bootloader_defconf fs
+.PHONY: all distclean clean .config bootloader bootloader_defconf fs git
 
 .EXPORT_ALL_VARIABLES:
 
-all: fs bootloader kernel
+all: git .config fs bootloader kernel
 
 distclean:
 ifneq ("$(bootloader)", "")
@@ -66,7 +66,11 @@ ifneq ("$(BUSYBOX)", "")
 endif
 	$(Q)rm -rf .config $(target_fs_dir) $(target_boot_files_dir) target
 
-bootloader: $(bootloader)/$(bootloader_image_location)
+git:
+	$(Q)git submodule status|grep '^-' && git submodule init && \
+		git submodule update
+
+bootloader: git .config $(bootloader)/$(bootloader_image_location)
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(bootloader)/$(bootloader_image_location) \
 		$(target_boot_files_dir)
@@ -74,27 +78,27 @@ bootloader: $(bootloader)/$(bootloader_image_location)
 $(bootloader)/$(bootloader_image_location): $(bootloader)/include/config.h
 	$(Q)$(MAKE) -C $(bootloader) $(bootloader_image)
 
-$(bootloader)/include/config.h:
+$(bootloader)/include/config.h: .config
 	$(Q)$(MAKE) -C $(bootloader) $(bootloader_defconfig)
 	
-fs: $(BUSYBOX)/busybox busymkdir
+fs: git .config $(BUSYBOX)/busybox busymkdir
 	$(Q)fakeroot $(MAKE) -C$(BUSYBOX) CONFIG_PREFIX=$(target_fs_dir) install
 	$(Q)cp -rf $(PWD)/$(ETC_SCRIPTS)/* $(target_fs_dir)/etc/
 
-busymkdir:
+busymkdir: .config
 	for d in lib etc dev dbg proc sys var/log; do \
 		$(Q)install -d $(target_fs_dir)/$$d;\
 	done
 
 
-$(BUSYBOX)/busybox: $(BUSYBOX)/.config
+$(BUSYBOX)/busybox: .config $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX)
 
-$(BUSYBOX)/.config:
+$(BUSYBOX)/.config: .config git
 	$(Q)cp $(busybox_defconfig_file) $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX) oldconfig
 
-kernel: fs $(kernel)/$(kernel_image_location)
+kernel: git fs $(kernel)/$(kernel_image_location)
 	$(Q)$(MAKE) -C$(kernel) INSTALL_MOD_STRIP=1 \
 	INSTALL_MOD_PATH=$(target_fs_dir) modules_install
 	$(Q)install -d $(target_boot_files_dir)
@@ -104,8 +108,9 @@ $(kernel)/$(kernel_image_location): $(kernel)/.config
 	$(Q)$(MAKE) -C $(kernel) $(kernel_image)
 	$(Q)$(MAKE) -C $(kernel) modules
 
-$(kernel)/.config:
+$(kernel)/.config: .config git
 	$(Q)$(MAKE) -C $(kernel) $(kernel_defconfig)
 
-%defconfig:
+%config: git
 	$(Q)$(MAKECONFIG) $(if $(VERBOSE:0=),-v) -d $(CONFIG_DIR) -c $@
+
