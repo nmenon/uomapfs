@@ -7,3 +7,6 @@
 [submodule "linux-omap"]
 	path = linux-omap
 	url = git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+[submodule "omap-u-boot-utils"]
+	path = omap-u-boot-utils
+	url = git://github.com/nmenon/omap-u-boot-utils.git

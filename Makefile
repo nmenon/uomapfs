@@ -43,6 +43,8 @@ PWD := $(shell pwd)
 
 target_fs_dir ?= $(PWD)/target/rootfs
 target_boot_files_dir ?= $(PWD)/target/boot
+host_binaries ?= $(PWD)/bin
+host_utils ?= omap-u-boot-utils
 
 ifeq ("$(busybox_defconfig_file)", "")
   busybox_defconfig_file := $(PWD)/$(CONFIG_DIR)/busybox_generic.config
@@ -52,7 +54,7 @@ endif
 
 .EXPORT_ALL_VARIABLES:
 
-all: git .config fs bootloader kernel
+all: git .config fs bootloader kernel utils
 
 distclean:
 ifneq ("$(bootloader)", "")
@@ -64,7 +66,9 @@ endif
 ifneq ("$(BUSYBOX)", "")
 	$(Q)$(MAKE) -C $(BUSYBOX) distclean
 endif
-	$(Q)rm -rf .config $(target_fs_dir) $(target_boot_files_dir) target
+	$(Q)$(MAKE) -C$(host_utils) distclean
+	$(Q)rm -rf .config $(target_fs_dir) $(target_boot_files_dir) \
+		$(host_binaries) target
 
 git:
 	$(Q)git submodule status|grep '^-' && git submodule init && \
@@ -113,3 +117,9 @@ $(kernel)/.config: .config git
 %config: git
 	$(Q)$(MAKECONFIG) $(if $(VERBOSE:0=),-v) -d $(CONFIG_DIR) -c $@
 
+utils: git
+	$(Q) install -d $(host_binaries)
+	$(Q) $(MAKE) -C $(host_utils) all usb
+	$(Q) install $(host_utils)/pusb  $(host_utils)/pserial \
+		$(host_utils)/gpsign  $(host_utils)/ukermit  $(host_utils)/ucmd\
+		$(host_binaries) 
