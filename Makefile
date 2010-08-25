@@ -57,7 +57,8 @@ endif
 
 .EXPORT_ALL_VARIABLES:
 
-all: git .config fs bootloader kernel utils kexec
+all: git .config fs kernel utils kexec
+	$(Q)$(MAKE) bootloader
 
 distclean:
 ifneq ("$(bootloader)", "")
