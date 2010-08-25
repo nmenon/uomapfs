@@ -128,18 +128,37 @@ $(BUSYBOX)/.config: .config git
 	$(Q)cp $(CONFIG_DIR)/$(busybox_defconfig_file) $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX) oldconfig
 
+mykboot: $(kernel)/$(kernel_image_location) utils
+	$(Q)$(MAKE) -C $(kernel) bzImage && \
+	$(Q)install $(kernel)/`dirname $(kernel_image_location)`/zImage \
+		$(target_boot_files_dir) && \
+	$(Q)$(host_binaries)/tagger -c \
+		$(CONFIG_DIR)/$(kernel_generatetag_conf_file) \
+		-f  $(target_boot_files_dir)/zImage && \
+	$(Q)$(host_binaries)/gpsign -c \
+		$(CONFIG_DIR)/$(kernel_generatetag_conf_file) \
+		-f  $(target_boot_files_dir)/zImage.tag 
+
 kernel: git fs .config $(kernel)/$(kernel_image_location)
 	$(Q)$(MAKE) -C$(kernel) INSTALL_MOD_STRIP=1 \
 	INSTALL_MOD_PATH=$(target_fs_dir) modules_install
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(kernel)/$(kernel_image_location) $(target_boot_files_dir)
+	if [ "$(kernel_generatetag_boot)" = "yes" ]; then \
+		$(Q)$(MAKE) mykboot; \
+	fi
 
 $(kernel)/$(kernel_image_location): .config $(kernel)/.config
 	$(Q)$(MAKE) -C $(kernel) $(kernel_image)
 	$(Q)$(MAKE) -C $(kernel) modules
 
 $(kernel)/.config: .config git
-	$(Q)$(MAKE) -C $(kernel) $(kernel_defconfig)
+	if [ -f "$(CONFIG_DIR)/$(kernel_defconfig)" ]; then \
+		cp $(CONFIG_DIR)/$(kernel_defconfig) $(kernel)/.config && \
+		$(Q)$(MAKE) -C $(kernel) oldconfig; \
+	else \
+	$(Q)$(MAKE) -C $(kernel) $(kernel_defconfig); \
+	fi
 
 %config: git
 	$(Q)$(MAKECONFIG) $(if $(VERBOSE:0=),-v) -d $(CONFIG_DIR) -c $@
