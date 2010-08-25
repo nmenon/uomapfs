@@ -10,3 +10,6 @@
 [submodule "omap-u-boot-utils"]
 	path = omap-u-boot-utils
 	url = git://github.com/nmenon/omap-u-boot-utils.git
+[submodule "kexec-tools"]
+	path = kexec-tools
+	url = git://git.kernel.org/pub/scm/utils/kernel/kexec/kexec-tools.git
