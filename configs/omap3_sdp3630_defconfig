@@ -1,0 +1,25 @@
+#
+# Build options for OMAP3530 beagleboard
+# NOTE: untested!
+ARCH ?= arm
+CROSS_COMPILE ?= arm-none-linux-gnueabi-
+
+kernel ?= linux-omap
+kernel_defconfig ?= omap3630_kern_config
+kernel_image ?= uImage
+kernel_image_location ?= arch/arm/boot/uImage
+kernel_generatetag_boot ?= yes
+kernel_generatetag_conf_file ?= sdp3630.cfg
+
+# Is not supported at the moment.. but what the hell
+bootloader ?=  u-boot
+bootloader_defconfig ?= omap3_sdp3430_config
+bootloader_image ?= 
+bootloader_image_location ?= u-boot.bin
+
+busybox_defconfig_file ?= busybox_bigboot.config
+
+omap_uboot_utils_config_file ?=
+
+kexec_build ?= yes
+kexec_mach ?= arm-none-linux-gnueabi
