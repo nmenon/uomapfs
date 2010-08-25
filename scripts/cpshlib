@@ -13,35 +13,49 @@ if [ ! -d "$target_dir" ]; then
 	exit 1;
 fi
 
+get_dep_libs(){
+	${CROSS_COMPILE}objdump -x $1| grep NEEDED|sed -e "s/\s\s*/ /g" |
+		cut -d " " -f3
+}
 #set -x
 for bin in $*
 do
 	bin_paths=`find $install_dir -iname "$bin"|xargs realpath`
 	for each_bin in $bin_paths
 	do
+		# OK I SHOULD USE SUBROUTINES HERE!!! shame on me
 		echo "Copying for $each_bin"
-		libs=`${CROSS_COMPILE}objdump -x $each_bin| \
-		     grep NEEDED|sed -e "s/\s\s*/ /g"|cut -d " " -f3`
-		for each_lib in $libs
+		libs=`get_dep_libs $each_bin`
+		more_dep=" "
+		while [ ! -z "$more_dep" ]
 		do
-			real_file=`${CROSS_COMPILE}gcc  \
-				  -print-file-name=$each_lib |xargs realpath`
-			 if [ -z "$real_file" ]; then
-			 	echo "$each_lib not available for $each_bin???"
-				exit 1
-			fi
-			if [ ! -f "$target_dir/$each_lib" ]; then
-				echo " copying: $each_lib"
-				cp $real_file $target_dir
-				bn=`basename $real_file`
-				if [ "$bn" != "$each_lib" ]; then
-					echo "linking: $each_lib to $bn"
-					ln -s $bn $target_dir/$each_lib
+			more_dep=""
+			for each_lib in $libs
+			do
+				real_file=`${CROSS_COMPILE}gcc  \
+					  -print-file-name=$each_lib |xargs realpath`
+				 if [ -z "$real_file" ]; then
+					echo "$each_lib not available for $each_bin???"
+					exit 1
 				fi
-			else
-				echo " already present: $each_lib"
-			fi
-
+				if [ ! -f "$target_dir/$each_lib" ]; then
+					echo " copying: $each_lib"
+					cp $real_file $target_dir
+					bn=`basename $real_file`
+					if [ "$bn" != "$each_lib" ]; then
+						echo "linking: $each_lib to $bn"
+						ln -s $bn $target_dir/$each_lib
+					fi
+					more_dep1=`get_dep_libs $real_file`
+					more_dep="$more_dep $more_dep1"
+				else
+					echo " already present: $each_lib"
+				fi
+			done
+			#strip white space and use uniq ones
+			more_dep=`echo $more_dep|sed -e "s/\s\s*/ /g"| \
+				 sed -e "s/ /\n/g"|sort|uniq`
+			libs=`echo $more_dep`
 		done
 	done
 done
