@@ -94,7 +94,6 @@ $(bootloader)/include/config.h: .config
 $(kexec_utils)/configure:
 	$(Q)cd $(kexec_utils) && \
 	$(Q)./bootstrap
-	$(Q)cd -
 
 $(kexec_utils)/Makefile: $(kexec_utils)/configure
 	$(Q)cd $(kexec_utils) && \
