@@ -47,15 +47,17 @@ target_boot_files_dir ?= $(PWD)/target/boot
 host_binaries ?= $(PWD)/bin
 host_utils ?= omap-u-boot-utils
 
+kexec_utils ?= kexec-tools
+
 ifeq ("$(busybox_defconfig_file)", "")
   busybox_defconfig_file := $(PWD)/$(CONFIG_DIR)/busybox_generic.config
 endif
 # Phony rules
-.PHONY: all distclean clean .config bootloader bootloader_defconf fs git
+.PHONY: all distclean clean .config bootloader bootloader_defconf fs git kexec my_kexec
 
 .EXPORT_ALL_VARIABLES:
 
-all: git .config fs bootloader kernel utils
+all: git .config fs bootloader kernel utils kexec
 
 distclean:
 ifneq ("$(bootloader)", "")
@@ -66,6 +68,9 @@ ifneq ("$(kernel)", "")
 endif
 ifneq ("$(BUSYBOX)", "")
 	$(Q)$(MAKE) -C $(BUSYBOX) distclean
+endif
+ifneq ("$(kexec_build)", "")
+	$(Q)$(MAKE) -C $(kexec_utils) distclean
 endif
 	$(Q)$(MAKE) -C$(host_utils) distclean
 	$(Q)rm -rf .config $(target_fs_dir) $(target_boot_files_dir) \
@@ -85,6 +90,26 @@ $(bootloader)/$(bootloader_image_location): $(bootloader)/include/config.h
 
 $(bootloader)/include/config.h: .config
 	$(Q)$(MAKE) -C $(bootloader) $(bootloader_defconfig)
+
+$(kexec_utils)/configure:
+	$(Q)cd $(kexec_utils) && \
+	$(Q)./bootstrap
+	$(Q)cd -
+
+$(kexec_utils)/Makefile: $(kexec_utils)/configure
+	$(Q)cd $(kexec_utils) && \
+	$(Q)./configure --build=arm --host=\$(kexec_mach) \
+		       --prefix=$(target_fs_dir)
+
+my_kexec: git .config fs $(kexec_utils)/Makefile
+	$(Q)$(MAKE) -C $(kexec_utils)
+	$(Q)$(MAKE) -C $(kexec_utils) install
+	$(Q)$(CPSHLIBS) $(target_fs_dir) $(target_fs_dir)/lib kexec kdump
+
+kexec: .config
+	if [ "$(kexec_build)" = "yes" ]; then \
+		$(Q)$(MAKE) my_kexec;\
+	fi
 	
 fs: git .config $(BUSYBOX)/busybox busymkdir
 	$(Q)fakeroot $(MAKE) -C$(BUSYBOX) CONFIG_PREFIX=$(target_fs_dir) install
