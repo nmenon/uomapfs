@@ -1,0 +1,47 @@
+#!/bin/bash
+install_dir=$1
+shift
+target_dir=$1
+shift
+
+if [ ! -d "$install_dir" ]; then
+	echo "install dir $install_dir not directory?"
+	exit 1;
+fi
+if [ ! -d "$target_dir" ]; then
+	echo "target dir $target_dir not directory?"
+	exit 1;
+fi
+
+#set -x
+for bin in $*
+do
+	bin_paths=`find $install_dir -iname "$bin"|xargs realpath`
+	for each_bin in $bin_paths
+	do
+		echo "Copying for $each_bin"
+		libs=`${CROSS_COMPILE}objdump -x $each_bin| \
+		     grep NEEDED|sed -e "s/\s\s*/ /g"|cut -d " " -f3`
+		for each_lib in $libs
+		do
+			real_file=`${CROSS_COMPILE}gcc  \
+				  -print-file-name=$each_lib |xargs realpath`
+			 if [ -z "$real_file" ]; then
+			 	echo "$each_lib not available for $each_bin???"
+				exit 1
+			fi
+			if [ ! -f "$target_dir/$each_lib" ]; then
+				echo " copying: $each_lib"
+				cp $real_file $target_dir
+				bn=`basename $real_file`
+				if [ "$bn" != "$each_lib" ]; then
+					echo "linking: $each_lib to $bn"
+					ln -s $bn $target_dir/$each_lib
+				fi
+			else
+				echo " already present: $each_lib"
+			fi
+
+		done
+	done
+done

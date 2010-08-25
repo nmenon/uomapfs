@@ -36,6 +36,7 @@ ETC_SCRIPTS :=$(CONFIG_DIR)/etc
 
 # Our standard scripts
 MAKECONFIG := $(SCRIPT_DIR)/make.config
+CPSHLIBS := $(SCRIPT_DIR)/cpshlib
 GETVAR := $(SCRIPT_DIR)/config.var
 PWD := $(shell pwd)
 
@@ -87,6 +88,7 @@ $(bootloader)/include/config.h: .config
 	
 fs: git .config $(BUSYBOX)/busybox busymkdir
 	$(Q)fakeroot $(MAKE) -C$(BUSYBOX) CONFIG_PREFIX=$(target_fs_dir) install
+	$(Q)$(CPSHLIBS) $(target_fs_dir) $(target_fs_dir)/lib busybox
 	$(Q)cp -rf $(PWD)/$(ETC_SCRIPTS)/* $(target_fs_dir)/etc/
 
 busymkdir: .config
@@ -98,7 +100,7 @@ $(BUSYBOX)/busybox: .config $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX)
 
 $(BUSYBOX)/.config: .config git
-	$(Q)cp $(busybox_defconfig_file) $(BUSYBOX)/.config
+	$(Q)cp $(CONFIG_DIR)/$(busybox_defconfig_file) $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX) oldconfig
 
 kernel: git fs .config $(kernel)/$(kernel_image_location)
@@ -122,4 +124,4 @@ utils: git
 	$(Q) $(MAKE) -C $(host_utils) all usb
 	$(Q) install $(host_utils)/pusb  $(host_utils)/pserial \
 		$(host_utils)/gpsign  $(host_utils)/ukermit  $(host_utils)/ucmd\
-		$(host_binaries) 
+		$(host_utils)/tagger $(host_binaries) 
