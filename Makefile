@@ -50,13 +50,28 @@ ifeq ("$(busybox_defconfig_file)", "")
   busybox_defconfig_file := $(PWD)/$(CONFIG_DIR)/busybox_generic.config
 endif
 # Phony rules
-.PHONY: all distclean clean .config bootloader bootloader_defconf fs git
+.PHONY: all distclean .config clean bootloader bootloader_defconf fs git
 
 .EXPORT_ALL_VARIABLES:
 
-all: git .config fs bootloader kernel utils
+all: git .config utils
+ifneq ("$(spl_bootloader)", "")
+	$(Q)$(MAKE) spl_bootloader
+endif
+ifneq ("$(bootloader)", "")
+	$(Q)$(MAKE) bootloader
+endif
+ifneq ("$(kernel)", "")
+	$(Q)$(MAKE) kernel
+endif
+ifneq ("$(BUSYBOX)", "")
+	$(Q)$(MAKE) fs
+endif
 
 distclean:
+ifneq ("$(spl_bootloader)", "")
+	$(Q)$(MAKE) -C $(spl_bootloader) distclean
+endif
 ifneq ("$(bootloader)", "")
 	$(Q)$(MAKE) -C $(bootloader) distclean
 endif
@@ -74,6 +89,17 @@ git:
 	$(Q)git submodule status|grep '^-' && git submodule init && \
 		git submodule update || echo 'nothin to update'
 
+spl_bootloader: git .config $(spl_bootloader)/$(spl_bootloader_image_location)
+	$(Q)install -d $(target_boot_files_dir)
+	$(Q)install $(spl_bootloader)/$(spl_bootloader_image_location) \
+		$(target_boot_files_dir)
+
+$(spl_bootloader)/$(spl_bootloader_image_location): $(spl_bootloader)/include/config.h
+	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_image)
+
+$(spl_bootloader)/include/config.h: .config
+	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_defconfig)
+	
 bootloader: git .config $(bootloader)/$(bootloader_image_location)
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(bootloader)/$(bootloader_image_location) \
@@ -84,7 +110,7 @@ $(bootloader)/$(bootloader_image_location): $(bootloader)/include/config.h
 
 $(bootloader)/include/config.h: .config
 	$(Q)$(MAKE) -C $(bootloader) $(bootloader_defconfig)
-	
+
 fs: git .config $(BUSYBOX)/busybox busymkdir
 	$(Q)fakeroot $(MAKE) -C$(BUSYBOX) CONFIG_PREFIX=$(target_fs_dir) install
 	$(Q)./scripts/cp_libs.sh $(target_fs_dir)/bin/busybox $(target_fs_dir)/lib

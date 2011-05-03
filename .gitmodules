@@ -10,3 +10,6 @@
 [submodule "linux-2.6"]
 	path = linux-2.6
 	url = git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+[submodule "x-loader"]
+	path = x-loader
+	url = git://gitorious.org/x-loader/x-loader.git
