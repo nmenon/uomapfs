@@ -1,0 +1,23 @@
+#
+# Build options for OMAP3430 SDP3430
+#
+ARCH ?= arm
+CROSS_COMPILE ?= arm-none-linux-gnueabi-
+
+kernel ?= linux-2.6
+kernel_defconfig ?= omap2plus_defconfig
+kernel_image ?= uImage
+kernel_image_location ?= arch/arm/boot/uImage
+
+bootloader ?=  u-boot
+bootloader_defconfig ?= omap3_beagle_config
+bootloader_image ?= 
+bootloader_image_location ?= u-boot.bin
+
+spl_bootloader ?=  x-loader
+spl_bootloader_defconfig ?= omap3530beagle_config
+spl_bootloader_image ?= ift
+spl_bootloader_image_location ?= MLO
+
+busybox_defconfig_file ?= 
+
