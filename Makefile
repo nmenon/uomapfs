@@ -87,6 +87,7 @@ $(bootloader)/include/config.h: .config
 	
 fs: git .config $(BUSYBOX)/busybox busymkdir
 	$(Q)fakeroot $(MAKE) -C$(BUSYBOX) CONFIG_PREFIX=$(target_fs_dir) install
+	$(Q)./scripts/cp_libs.sh $(target_fs_dir)/bin/busybox $(target_fs_dir)/lib
 	$(Q)cp -rf $(PWD)/$(ETC_SCRIPTS)/* $(target_fs_dir)/etc/
 
 busymkdir: .config

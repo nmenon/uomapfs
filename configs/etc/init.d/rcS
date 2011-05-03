@@ -13,8 +13,6 @@ mkdev () {
 # goto the init.d directory
 cd /etc/init.d
 
-# get the system configuration info
-. ./sysconfig
 
 # Mount /proc
 echo -n "Mounting proc : "
@@ -26,6 +24,9 @@ else
 	# this exit won't work if there is no console created yet
 	exit 1
 fi
+
+# get the system configuration info
+. ./sysconfig
 
 # do we have sysfs?
 SYSFS=0
@@ -108,6 +109,24 @@ if [ ! -c /dev/null ]; then
 		ln -s /dev/video$i /dev/video/$i
 		ln -s /dev/video$i /dev/v4l/
 	done
+fi
+proc=`mount|grep "proc"`
+if [ -z "proc" ]; then
+	mount -t procfs none /proc
+fi
+if [ -f /proc/cmdline ]; then
+	# grab console from cmdline and use it..
+	tty=`cat /proc/cmdline|sed -e "s/ /\n/g"|grep console|cut -d '=' -f2|cut -d ',' -f1`
+	if [ -z "tty" ]; then
+		echo `cat /proc/cmdline` "does'nt have console?"
+	else
+		# remove my previous one if it exists
+		rm -f /dev/tty-bd
+		ln -s /dev/$tty /dev/tty-bd
+		echo "/dev/$tty linked to /dev/tty-bd - using as console"
+	fi
+else
+	echo "cmdline not found - no console?"
 fi
 
 # restart with the console device that was just created

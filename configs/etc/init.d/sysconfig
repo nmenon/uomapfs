@@ -1,2 +1,2 @@
-HOSTNAME=3430SDP-3430
+HOSTNAME=`cat /proc/cpuinfo |grep Hardware|cut -d ':' -f2|tr -d ' '`
 RELEASE_ID=X.x

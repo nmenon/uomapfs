@@ -6,11 +6,14 @@
 # /bin/sh
 #
 # Start an "askfirst" shell on the serial port
-ttyS0::askfirst:-/bin/sh
-ttyS1::askfirst:-/bin/sh
-ttyS2::askfirst:-/bin/sh
+#ttyS0::askfirst:-/bin/sh
+#ttyS1::askfirst:-/bin/sh
+#ttyS2::askfirst:-/bin/sh
+#ttyO0::askfirst:-/bin/sh
+#ttyO3::askfirst:-/bin/sh
 #ttyS2::askfirst:-/bin/sh
 #ttyS3::askfirst:-/bin/sh
+tty-bd::askfirst:-/bin/sh
 
 # Stuff to do when restarting the init process
 ::restart:/sbin/init
