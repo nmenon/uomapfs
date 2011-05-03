@@ -4,8 +4,8 @@
 ARCH ?= arm
 CROSS_COMPILE ?= arm-none-linux-gnueabi-
 
-kernel ?= linux-omap
-kernel_defconfig ?= omap_3430sdp_defconfig
+kernel ?= linux-2.6
+kernel_defconfig ?= omap2plus_defconfig
 kernel_image ?= uImage
 kernel_image_location ?= arch/arm/boot/uImage
 
