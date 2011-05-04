@@ -104,6 +104,11 @@ bootloader: git .config $(bootloader)/$(bootloader_image_location)
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(bootloader)/$(bootloader_image_location) \
 		$(target_boot_files_dir)
+ifneq ("$(bootloader_cmd)", "")
+	$(Q)mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n 'bootscr'\
+		-d $(bootloader_cmd) $(target_boot_files_dir)/boot.scr
+	$(Q)install $(bootloader_cmd) $(target_boot_files_dir)/boot.cmd
+endif
 
 $(bootloader)/$(bootloader_image_location): $(bootloader)/include/config.h
 	$(Q)$(MAKE) -C $(bootloader) $(bootloader_image)
