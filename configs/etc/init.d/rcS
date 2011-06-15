@@ -41,24 +41,35 @@ fi
 
 # do we have devfs?
 DEVFS=0
-cat /proc/filesystems | grep -q devfs
+cat /proc/filesystems | grep -q devtmpfs
 if [ $? -eq 0 ] ; then
+	echo -n "Mounting devtmpfs:"
+	if mount -n -t devtmpfs none /dev; then
+		echo "OK"
+	else
+		echo "boot mounted: OK"
+
+	fi
+else
+	cat /proc/filesystems | grep -q devfs
+	if [ $? -eq 0 ] ; then
 #	echo -n "Mounting devfs : "
 #	if mount -n -t devfs none /dev; then
 #		echo "OK"
 #	fi
-	DEVFS=1
-else
-# do we have tmpfs?
-	cat /proc/filesystems | grep -q tmpfs
-	if [ $? -eq 0 ]; then
-	echo -n "Mounting /dev : "
-		if mount -n -t tmpfs none /dev; then echo "OK"; fi
+		DEVFS=1
 	else
-# is the dev directory writable?
-		if ! touch /dev/.write; then
-			echo "Unable to write to /dev - init aborted"
-			exit 1
+		# do we have tmpfs?
+		cat /proc/filesystems | grep -q tmpfs
+		if [ $? -eq 0 ]; then
+		echo -n "Mounting /dev : "
+			if mount -n -t tmpfs none /dev; then echo "OK"; fi
+		else
+		# is the dev directory writable?
+			if ! touch /dev/.write; then
+				echo "Unable to write to /dev - init aborted"
+				exit 1
+			fi
 		fi
 	fi
 fi
@@ -157,7 +168,7 @@ if [ $DEVFS -eq 1 ]; then
 #	maj_no=`grep " tty$" /proc/devices | cut -b1,2,3`
 #	if [ -z "$maj_no" ] ; then maj_no=4; fi
 #	makedevs /dev/tty c $maj_no 0 0 63
-                                                                                
+
 	# fix the framebuffer
 	ln -s /dev/fb/0 /dev/fb0
 
@@ -182,7 +193,7 @@ fi
 if [ ! -e "/dev/mixer" -a -e "/dev/sound/mixer" ]; then
 	ln -s /dev/sound/mixer /dev/mixer
 fi
-                                                                                
+
 
 # Configure network
 if [ -x /sbin/ifconfig ] ; then
@@ -234,7 +245,7 @@ if [ -x /sbin/syslogd ] ; then
 		echo "Failed"
 	fi
 fi
-	
+
 
 # Mount the rest of the file systems
 echo -n "Mounting filesystems : "
