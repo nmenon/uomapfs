@@ -50,7 +50,7 @@ ifeq ("$(busybox_defconfig_file)", "")
   busybox_defconfig_file := $(PWD)/$(CONFIG_DIR)/busybox_generic.config
 endif
 # Phony rules
-.PHONY: all distclean .config clean bootloader bootloader_defconf fs git
+.PHONY: all distclean .config clean bootloader bootloader_defconf fs git ramdisk
 
 .EXPORT_ALL_VARIABLES:
 
@@ -125,6 +125,20 @@ busymkdir: .config
 	for d in lib etc dev dbg proc sys var/log; do \
 		install -d $(target_fs_dir)/$$d;\
 	done
+
+# Ensure that everything is built before we build ramdisk - e.g. tests/utils etc.
+ramdisk: all
+	$(Q)rm -rf $(target_boot_files_dir)/ramdisk* 2>/dev/null
+	$(Q)mkdir -p $(target_boot_files_dir)/ramdisk-dir
+	$(Q)dd if=/dev/zero of=$(target_boot_files_dir)/ramdisk count=1 bs=10M
+	$(Q)(sleep 1|echo y)| fakeroot mkfs -t ext3 $(target_boot_files_dir)/ramdisk
+	$(Q) echo "NEEDS SUPER USER PERMISSIONS - could not get fusermount to work"
+	$(Q)sudo mount -o loop -t ext3 $(target_boot_files_dir)/ramdisk $(target_boot_files_dir)/ramdisk-dir
+	$(Q)sudo cp -a $(target_fs_dir)/* $(target_boot_files_dir)/ramdisk-dir
+	$(Q)sudo chown -R root.root $(target_boot_files_dir)/ramdisk-dir/bin $(target_boot_files_dir)/ramdisk-dir/sbin
+	$(Q)sudo umount $(target_boot_files_dir)/ramdisk-dir
+	$(Q)rmdir $(target_boot_files_dir)/ramdisk-dir
+	$(Q)gzip $(target_boot_files_dir)/ramdisk
 
 $(BUSYBOX)/busybox: .config $(BUSYBOX)/.config
 	$(Q)$(MAKE) -C $(BUSYBOX)
