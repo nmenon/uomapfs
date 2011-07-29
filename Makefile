@@ -123,7 +123,7 @@ fs: git .config $(BUSYBOX)/busybox busymkdir
 
 busymkdir: .config
 	for d in lib etc dev dbg proc sys var/log; do \
-		$(Q)install -d $(target_fs_dir)/$$d;\
+		install -d $(target_fs_dir)/$$d;\
 	done
 
 $(BUSYBOX)/busybox: .config $(BUSYBOX)/.config
