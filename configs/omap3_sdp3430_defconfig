@@ -13,6 +13,3 @@ bootloader ?=  u-boot
 bootloader_defconfig ?= omap3_sdp3430_config
 bootloader_image ?= 
 bootloader_image_location ?= u-boot.bin
-
-busybox_defconfig_file ?= 
-

@@ -44,46 +44,64 @@ PWD := $(shell pwd)
 target_fs_dir ?= $(PWD)/target/rootfs
 target_boot_files_dir ?= $(PWD)/target/boot
 host_binaries ?= $(PWD)/bin
-host_utils ?= omap-u-boot-utils
+#host_utils ?= omap-u-boot-utils
 
 ifeq ("$(busybox_defconfig_file)", "")
   busybox_defconfig_file := $(PWD)/$(CONFIG_DIR)/busybox_generic.config
 endif
+
+BUILD_TARGETS := 
+DCLEAN_TARGETS := 
+ifneq ("$(spl_bootloader)", "")
+	BUILD_TARGETS += spl_bootloader
+	DCLEAN_TARGETS += spl_bootloader_clean
+endif
+ifneq ("$(bootloader)", "")
+	BUILD_TARGETS += bootloader
+	DCLEAN_TARGETS += bootloader_clean
+endif
+ifneq ("$(BUSYBOX)", "")
+	BUILD_TARGETS += fs
+	DCLEAN_TARGETS += fs_clean
+endif
+ifneq ("$(kernel)", "")
+BUILD_TARGETS += kernel
+	DCLEAN_TARGETS += kernel_clean
+endif
+ifneq ("$(host_utils)", "")
+	BUILD_TARGETS += utils
+	DCLEAN_TARGETS += utils_clean
+endif
+
 # Phony rules
-.PHONY: all distclean .config clean bootloader bootloader_defconf fs git ramdisk
+.PHONY: all distclean .config clean bootloader bootloader_defconf fs git ramdisk utils
 
 .EXPORT_ALL_VARIABLES:
 
-all: git .config utils
-ifneq ("$(spl_bootloader)", "")
-	$(Q)$(MAKE) spl_bootloader
-endif
-ifneq ("$(bootloader)", "")
-	$(Q)$(MAKE) bootloader
-endif
-ifneq ("$(kernel)", "")
-	$(Q)$(MAKE) kernel
-endif
-ifneq ("$(BUSYBOX)", "")
-	$(Q)$(MAKE) fs
-endif
+all: git .config
+	$(Q)[ -f .config ] || (echo "no .config, run 'make with one of: "`ls configs/*defconfig|sed -e 's/configs\///g'` && exit 1)
+	$(Q)echo "Build targets=$(BUILD_TARGETS)"
+	$(Q)$(MAKE) $(BUILD_TARGETS)
 
 distclean:
-ifneq ("$(spl_bootloader)", "")
-	$(Q)$(MAKE) -C $(spl_bootloader) distclean
-endif
-ifneq ("$(bootloader)", "")
-	$(Q)$(MAKE) -C $(bootloader) distclean
-endif
-ifneq ("$(kernel)", "")
-	$(Q)$(MAKE) -C $(kernel) distclean
-endif
-ifneq ("$(BUSYBOX)", "")
-	$(Q)$(MAKE) -C $(BUSYBOX) distclean
-endif
-	$(Q)$(MAKE) -C$(host_utils) distclean
+	$(Q)$(MAKE) $(DCLEAN_TARGETS)
 	$(Q)rm -rf .config $(target_fs_dir) $(target_boot_files_dir) \
 		$(host_binaries) target
+
+spl_bootloader_clean:
+	$(Q)$(MAKE) -C $(spl_bootloader) distclean
+
+bootloader_clean:
+	$(Q)$(MAKE) -C $(bootloader) distclean
+
+kernel_clean:
+	$(Q)$(MAKE) -C $(kernel) distclean
+
+fs_clean:
+	$(Q)$(MAKE) -C $(BUSYBOX) distclean
+
+utils_clean:
+	$(Q)$(MAKE) -C $(host_utils) distclean
 
 git:
 	$(Q)git submodule status|grep '^-' && git submodule init && \

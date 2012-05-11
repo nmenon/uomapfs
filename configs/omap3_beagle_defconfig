@@ -15,10 +15,9 @@ bootloader_image ?=
 bootloader_image_location ?= u-boot.bin
 bootloader_cmd ?= configs/u-boot.cmd
 
-spl_bootloader ?=  x-loader
-spl_bootloader_defconfig ?= omap3530beagle_config
-spl_bootloader_image ?= ift
+spl_bootloader ?=  u-boot
+spl_bootloader_defconfig ?= omap3_beagle_config
+spl_bootloader_image ?= 
 spl_bootloader_image_location ?= MLO
 
-busybox_defconfig_file ?= 
-
+host_utils ?= omap-u-boot-utils
