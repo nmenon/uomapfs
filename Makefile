@@ -187,7 +187,12 @@ ifneq ("$(kernel_dtb)", "")
 endif
 
 $(kernel)/.config: .config git
-	$(Q)$(MAKE) -C $(kernel) $(kernel_defconfig)
+	$(Q)if [ -f $(kernel_defconfig) ]; then \
+		cp $(kernel_defconfig) $(kernel)/.config && \
+		$(MAKE) -C $(kernel) oldconfig;\
+	else\
+		$(MAKE) -C $(kernel) $(kernel_defconfig);\
+	fi;
 
 %config: git
 	$(Q)$(MAKECONFIG) $(if $(VERBOSE:0=),-v) -d $(CONFIG_DIR) -c $@
