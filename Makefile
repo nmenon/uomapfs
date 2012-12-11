@@ -115,8 +115,10 @@ spl_bootloader: git .config $(spl_bootloader)/$(spl_bootloader_image_location)
 $(spl_bootloader)/$(spl_bootloader_image_location): $(spl_bootloader)/include/config.h
 	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_image)
 
+ifneq ("$(bootloader)", "$(spl_bootloader)")
 $(spl_bootloader)/include/config.h: .config
 	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_defconfig)
+endif
 	
 bootloader: git .config $(bootloader)/$(bootloader_image_location)
 	$(Q)install -d $(target_boot_files_dir)
