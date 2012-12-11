@@ -1,0 +1,23 @@
+#
+# Build options for AM35XX beagle bone
+#
+ARCH ?= arm
+CROSS_COMPILE ?= arm-none-linux-gnueabi-
+
+kernel ?= linux-2.6
+kernel_defconfig ?= omap2plus_defconfig
+kernel_image ?= uImage
+kernel_image_location ?= arch/arm/boot/uImage
+kernel_dtb?=arch/arm/boot/dts/am335x-bone.dtb
+
+bootloader ?=  u-boot
+bootloader_defconfig ?= am335x_evm_config
+bootloader_image ?= 
+bootloader_image_location ?= u-boot.img
+bootloader_env ?= configs/am35xx_bone_ram_uEnv.txt
+
+spl_bootloader ?=  u-boot
+spl_bootloader_defconfig ?= am335x_evm_config
+spl_bootloader_image ?= 
+spl_bootloader_image_location ?= MLO
+
