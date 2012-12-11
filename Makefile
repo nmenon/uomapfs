@@ -173,10 +173,16 @@ kernel: git fs .config $(kernel)/$(kernel_image_location)
 	INSTALL_MOD_PATH=$(target_fs_dir) modules_install
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(kernel)/$(kernel_image_location) $(target_boot_files_dir)
+ifneq ("$(kernel_dtb)", "")
+	$(Q)install $(kernel)/$(kernel_dtb) $(target_boot_files_dir)
+endif
 
 $(kernel)/$(kernel_image_location): .config $(kernel)/.config
 	$(Q)$(MAKE) -C $(kernel) $(kernel_image)
 	$(Q)$(MAKE) -C $(kernel) modules
+ifneq ("$(kernel_dtb)", "")
+	$(Q)$(MAKE) -C $(kernel) dtbs
+endif
 
 $(kernel)/.config: .config git
 	$(Q)$(MAKE) -C $(kernel) $(kernel_defconfig)
