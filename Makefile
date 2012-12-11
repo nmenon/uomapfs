@@ -127,6 +127,9 @@ ifneq ("$(bootloader_cmd)", "")
 		-d $(bootloader_cmd) $(target_boot_files_dir)/boot.scr
 	$(Q)install $(bootloader_cmd) $(target_boot_files_dir)/boot.cmd
 endif
+ifneq ("$(bootloader_env)", "")
+	$(Q)install $(bootloader_env) $(target_boot_files_dir)/uEnv.txt
+endif
 
 $(bootloader)/$(bootloader_image_location): $(bootloader)/include/config.h
 	$(Q)$(MAKE) -C $(bootloader) $(bootloader_image)
