@@ -24,6 +24,11 @@ do
 		if [ -e "$SRC_LIB_PATH/$lib" ]; then
 			LIBRARY="$SRC_LIB_PATH/$lib"
 			R_PATH=`realpath $LIBRARY`
+		else
+			LIBRARY=`${CROSS_COMPILE}gcc -print-file-name=$lib`
+			R_PATH=`realpath $LIBRARY`
+		fi
+		if [ -e "$LIBRARY" ]; then
 			cp -va $LIBRARY $R_PATH $TPATH
 			L="$L $R_PATH"
 		else
