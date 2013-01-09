@@ -145,7 +145,7 @@ fs: git .config $(BUSYBOX)/busybox busymkdir
 	$(Q)cp -rf $(PWD)/$(ETC_SCRIPTS)/* $(target_fs_dir)/etc/
 
 busymkdir: .config
-	for d in lib etc dev dbg proc sys var/log; do \
+	for d in lib etc dev dbg proc sys var/log var/run var/lib/misc; do \
 		install -d $(target_fs_dir)/$$d;\
 	done
 

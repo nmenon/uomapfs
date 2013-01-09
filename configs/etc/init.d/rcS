@@ -196,29 +196,45 @@ fi
 
 
 # Configure network
+iface_up()
+{
+	iface=$1
+	echo -n "Configuring $iface : "
+	ethcfg=`ifconfig $iface | sed -n -e "/^.*inet/s/^.*addr:\([0-9.]*\).*$/\1/p"`
+	if [ -n "$ethcfg" ] ; then
+		# configured by the kernel - we are ok
+		echo "OK - $ethcfg"
+		NETWORKING=YES
+	else
+		if [ -x /sbin/ifup ] ; then
+			# try using ifup
+			if ifup $iface; then
+				echo "OK"; NETWORKING=YES
+			else
+				echo "Failed"
+			 fi
+		else
+			# no way to configure - fail it
+			echo "Skipped - no config data found"
+		fi
+	fi
+}
+
 if [ -x /sbin/ifconfig ] ; then
 	if ifconfig 2>/dev/null > /dev/null; then
 		echo "Setting up networking"
 		echo -n "Configuring lo : "
 		if ifconfig lo 127.0.0.1; then echo "OK"; else echo "Failed"; fi
-
-		echo -n "Configuring eth0 : "
-		# check eth0 - see if it was configured by the kernel
-		ethcfg=`ifconfig eth0 | sed -n -e "/^.*inet/s/^.*addr:\([0-9.]*\).*$/\1/p"`
-		if [ -n "$ethcfg" ] ; then
-			# configured by the kernel - we are ok
-			echo "OK - $ethcfg"
-			NETWORKING=YES
+		# Bring up rest of interfaces
+		if [ -f /etc/network/interfaces ]; then
+			for iface in `cat /etc/network/interfaces |grep auto|sed -e "s/\s\s*/|/g"|grep -v "^#"|cut -d'|' -f2|grep -v lo`
+			do
+				iface_up $iface
+			done
 		else
-			if [ -x /sbin/ifup ] ; then
-				# try using ifup
-				if ifup eth0;
-					then echo "OK"; NETWORKING=YES; else echo "Failed"; fi
-			else
-				# no way to configure - fail it
-				echo "Skipped - no config data found"
-			fi
+			iface_up eth0
 		fi
+
 	fi
 fi
 
