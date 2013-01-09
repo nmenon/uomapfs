@@ -52,10 +52,6 @@ endif
 
 BUILD_TARGETS := 
 DCLEAN_TARGETS := 
-ifneq ("$(spl_bootloader)", "")
-	BUILD_TARGETS += spl_bootloader
-	DCLEAN_TARGETS += spl_bootloader_clean
-endif
 ifneq ("$(bootloader)", "")
 	BUILD_TARGETS += bootloader
 	DCLEAN_TARGETS += bootloader_clean
@@ -93,6 +89,9 @@ spl_bootloader_clean:
 
 bootloader_clean:
 	$(Q)$(MAKE) -C $(bootloader) distclean
+ifneq ("$(spl_bootloader)", "")
+	$(Q)$(MAKE) spl_bootloader_clean
+endif
 
 kernel_clean:
 	$(Q)$(MAKE) -C $(kernel) distclean
@@ -107,23 +106,46 @@ git:
 	$(Q)git submodule status|grep '^-' && git submodule init && \
 		git submodule update || echo 'nothin to update'
 
-spl_bootloader: git .config $(spl_bootloader)/$(spl_bootloader_image_location)
+ifneq ("$(spl_bootloader)", "")
+_spl_img_install:
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(spl_bootloader)/$(spl_bootloader_image_location) \
 		$(target_boot_files_dir)
 
+ifneq ("$(bootloader)", "$(spl_bootloader)")
+spl_bootloader: git .config $(spl_bootloader)/$(spl_bootloader_image_location)
+	$(Q)$(MAKE) _spl_img_install
+
 $(spl_bootloader)/$(spl_bootloader_image_location): $(spl_bootloader)/include/config.h
 	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_image)
 
-ifneq ("$(bootloader)", "$(spl_bootloader)")
 $(spl_bootloader)/include/config.h: .config
 	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_defconfig)
+else
+
+ifneq ("$(bootloader_image)", "$(spl_bootloader_image)")
+spl_bootloader: git .config $(spl_bootloader)/$(spl_bootloader_image_location)
+ifneq ("$(bootloader_defconfig)", "$(spl_bootloader_defconfig)")
+	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_defconfig)
+endif
+	$(Q)$(MAKE) -C $(spl_bootloader) $(spl_bootloader_image)
+	$(Q)$(MAKE) _spl_img_install
+else
+
+spl_bootloader:
+	$(Q)$(MAKE) _spl_img_install
+endif
+
+endif
 endif
 	
 bootloader: git .config $(bootloader)/$(bootloader_image_location)
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(bootloader)/$(bootloader_image_location) \
 		$(target_boot_files_dir)
+ifneq ("$(spl_bootloader)", "")
+	$(Q)$(MAKE) spl_bootloader
+endif
 ifneq ("$(bootloader_cmd)", "")
 	$(Q)mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n 'bootscr'\
 		-d $(bootloader_cmd) $(target_boot_files_dir)/boot.scr
@@ -171,7 +193,7 @@ $(BUSYBOX)/.config: .config git
 	$(Q)$(MAKE) -C $(BUSYBOX) oldconfig
 
 kernel: git fs .config $(kernel)/$(kernel_image_location)
-	$(Q)$(MAKE) -C$(kernel) INSTALL_MOD_STRIP=1 \
+	$(Q)$(MAKE) -C $(kernel) INSTALL_MOD_STRIP=1 \
 	INSTALL_MOD_PATH=$(target_fs_dir) modules_install
 	$(Q)install -d $(target_boot_files_dir)
 	$(Q)install $(kernel)/$(kernel_image_location) $(target_boot_files_dir)
