@@ -1,0 +1,11 @@
+fdtbaddr=0x80F80000
+loadaddr=0x80200000
+rdaddr=0x81000000
+bootargs=console=${console} ${optargs} root=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M rootfstype=ext3 earlyprintk
+bootargs=console=ttyO0,115200n8 root=/dev/ram0 rw ramdisk_size=65536 initrd=0x81000000,64M rootfstype=ext3 earlyprintk
+fatloaduimage=fatload mmc 0:1 ${loadaddr} uImage
+fatloadramdisk=fatload mmc 0:1 ${rdaddr} ramdisk.gz
+loaddtb=fatload mmc 0:1 ${fdtbaddr} am335x-bonelt.dtb; fdt addr ${fdtbaddr}; fdt resize
+bootwdtb=bootm ${loadaddr} - ${fdtbaddr}
+bootcmd=echo booting from Ramdisk;sleep 1;run fatloadramdisk;sleep 1;run fatloaduimage; sleep 1; run loaddtb; echo "starting"; sleep 1; printenv;run bootwdtb
+uenvcmd=boot
