@@ -106,6 +106,10 @@ git:
 	$(Q)git submodule status|grep '^-' && git submodule init && \
 		git submodule update || echo 'nothin to update'
 
+gitsync:
+	$(Q)git submodule init && git submodule sync && \
+		git submodule update || echo 'nothin to update'
+
 ifneq ("$(spl_bootloader)", "")
 _spl_img_install:
 	$(Q)install -d $(target_boot_files_dir)
