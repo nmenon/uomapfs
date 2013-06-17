@@ -6,14 +6,14 @@ I always saw that fundamental process is a basic u-boot and kernel
 running on a basic busybox - usually u need to apply few patchsets to get things
 working for each of them..
 
-so thought for sometime about doing bitbake after being almost brainwashed
+So, thought for sometime about doing bitbake after being almost brainwashed
 by a few OpenEmbedded junkies ;).. but then robclark showed me git submodules
 and I am hooked big time.
 
 Disclaimer: I've been too long a kernel hacker to loose the roots..
 
 Time for some objectives:
-a) make board_name_defconfig
+a) make board_name_defconfig (see directory configs/*defconfig what to use)
 b) make
 you should have:
 i) target directory with basic busybox fs
@@ -21,10 +21,15 @@ ii) binaries directory with uImage, u-boot, MLO (if required)
 
 just download a codesourcery tool chain:
 http://www.codesourcery.com/sgpp/lite/arm/portal/subscription3057
+OR on newer Ubuntu -> 12.04+ atleast,
+   sudo apt-get install gcc-arm-linux-gnueabi
+to install linaro gcc tool chain for arm.
+
+You also need realpath installed - sudo apt-get install realpath for Ubuntu.
 
 Documentation:
 should eventually be in docs/ directory
 
-i will figure out most of how things work later on I suppose..
+I will figure out most of how things work later on I suppose..
 any ideas, feel free to email me:
 mailto: menon dot nishanth at gmail dot com
