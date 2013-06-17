@@ -1,8 +1,4 @@
-fdtbaddr=0x80F80000
-loadaddr=0x80200000
-fatloaduimage=fatload mmc 0:1 ${loadaddr} uImage
-bootargs=console=ttyO2,115200n8 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait earlyprintk
-loaddtb=fatload mmc 0:1 ${fdtbaddr} omap4-panda.dtb; fdt addr ${fdtbaddr}; fdt resize
-bootwdtb=bootm ${loadaddr} - ${fdtbaddr}
-bootcmd=printenv;echo "NOTE: booting from MMC filesystem";sleep 1;run fatloaduimage; sleep 1; run loaddtb; echo "starting.."; sleep 1; run bootwdtb
+bootdir=/
+bootpart=0:1
+bootcmd=mw.w 0x4A31E05A 0x1f;printenv;echo "NOTE: booting from MMC filesystem";if run loadimage; then run loadfdt;run mmcboot; fi;
 uenvcmd=boot
