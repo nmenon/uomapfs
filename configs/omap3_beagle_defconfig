@@ -6,18 +6,17 @@ CROSS_COMPILE ?= arm-none-linux-gnueabi-
 
 kernel ?= linux-2.6
 kernel_defconfig ?= omap2plus_defconfig
-kernel_image ?= uImage
-kernel_image_location ?= arch/arm/boot/uImage
+kernel_image ?= zImage
+kernel_image_location ?= arch/arm/boot/zImage
+kernel_dtb?=arch/arm/boot/dts/omap3-beagle*.dtb
 
 bootloader ?=  u-boot
 bootloader_defconfig ?= omap3_beagle_config
 bootloader_image ?= 
-bootloader_image_location ?= u-boot.bin
-bootloader_cmd ?= configs/u-boot.cmd
+bootloader_image_location ?= u-boot.img
+bootloader_env ?= configs/omap3_beaglexm_uEnv.txt
 
 spl_bootloader ?=  u-boot
 spl_bootloader_defconfig ?= omap3_beagle_config
 spl_bootloader_image ?= 
 spl_bootloader_image_location ?= MLO
-
-host_utils ?= omap-u-boot-utils
