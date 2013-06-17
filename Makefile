@@ -171,9 +171,11 @@ fs: git .config $(BUSYBOX)/busybox busymkdir
 	$(Q)cp -rf $(PWD)/$(ETC_SCRIPTS)/* $(target_fs_dir)/etc/
 
 busymkdir: .config
-	for d in lib etc dev dbg proc sys var/log var/run var/lib/misc; do \
+	for d in lib etc dev proc sys var/log var/run var/lib/misc; do \
 		install -d $(target_fs_dir)/$$d;\
 	done
+	$(Q)rm -f $(target_fs_dir)/d
+	$(Q)ln -s /sys/kernel/debug $(target_fs_dir)/d
 
 # Ensure that everything is built before we build ramdisk - e.g. tests/utils etc.
 ramdisk: all
