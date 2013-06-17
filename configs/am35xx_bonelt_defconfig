@@ -6,8 +6,8 @@ CROSS_COMPILE ?= arm-none-linux-gnueabi-
 
 kernel ?= linux-2.6
 kernel_defconfig ?= omap2plus_defconfig
-kernel_image ?= uImage
-kernel_image_location ?= arch/arm/boot/uImage
+kernel_image ?= zImage
+kernel_image_location ?= arch/arm/boot/zImage
 kernel_dtb?=arch/arm/boot/dts/am335x-bonelt.dtb
 
 bootloader ?=  u-boot
