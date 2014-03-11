@@ -1,0 +1,6 @@
+# Generic uenv.txt
+
+bootdir=/
+bootpart=0:1
+mmcroot=/dev/mmcblk1p2 rw
+
