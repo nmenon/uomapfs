@@ -15,7 +15,7 @@ bootloader ?=  u-boot
 bootloader_defconfig ?= omap4_panda_config
 bootloader_image ?=
 bootloader_image_location ?= u-boot.img
-bootloader_env ?= configs/omap4_panda_uEnv.txt
+bootloader_env ?= configs/uEnv.txt
 
 spl_bootloader ?=  u-boot
 spl_bootloader_defconfig ?= omap4_panda_config

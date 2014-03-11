@@ -1,4 +1,0 @@
-bootdir=/
-bootpart=0:1
-bootcmd=mw.w 0x4A31E05A 0x1f;printenv;echo "NOTE: booting from MMC filesystem";if run loadimage; then run loadfdt;run mmcboot; fi;
-uenvcmd=boot
