@@ -4,6 +4,7 @@ iface lo inet loopback
 # Enable this if you like networking
 #auto eth0
 iface eth0 inet dhcp
+	script /etc/udhcpc/default.script
 #Static IP address
 #iface eth0 inet static
 #	address 134.134.160.89
