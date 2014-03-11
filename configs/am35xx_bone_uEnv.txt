@@ -1,8 +1,0 @@
-fdtbaddr=0x80F80000
-loadaddr=0x80200000
-fatloaduimage=fatload mmc 0:1 ${loadaddr} zImage
-bootargs=console=ttyO0,115200n8 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait
-loaddtb=fatload mmc 0:1 ${fdtbaddr} am335x-bone.dtb; fdt addr ${fdtbaddr}; fdt resize
-bootwdtb=bootz ${loadaddr} - ${fdtbaddr}
-bootcmd=printenv;echo "NOTE: booting from MMC filesystem";sleep 1;run fatloaduimage; sleep 1; run loaddtb; echo "starting.."; sleep 1; run bootwdtb
-uenvcmd=boot
