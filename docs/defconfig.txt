@@ -1,4 +1,4 @@
-what the heck is a defconfig?
+What the heck is a defconfig?
 ----------------------------
 defconfig is default configuration used to describe the platform
 configuration, similar to makefile language
@@ -12,12 +12,20 @@ CROSS_COMPILE ?= cross compiler to use as default
 kernel ?= choice of folder for the kernel
 kernel_defconfig ?= default configuration to use
 kernel_image ?= what type of image to build - uImage, zImage etc
-kernel_image_location ??= e.g. arch/arm/boot/uImage
+kernel_image_location ?= e.g. arch/arm/boot/uImage
+kernel_dtb ?= arch/arm/boot/dts/omap5-uevm*.dtb (which dtb to use)
 
 bootloader ?=  choice of folder for u-boot
 bootloader_defconfig ?= default config for u-boot to use
-bootloader_image ?= usually null for u-boot.bin for u-boot
+bootloader_image ?= usually null for u-boot.img/bin for u-boot
 bootloader_image_location ?= e.g. u-boot.bin
+bootloader_env ?= what uEnv.txt file to use (example: configs/uEnv.txt)
+
+(for building MLO)
+spl_bootloader ?=  u-boot
+spl_bootloader_defconfig ?= default config for u-boot to use
+spl_bootloader_image ?= usually null for MLO
+spl_bootloader_image_location ?= MLO
 
 busybox_defconfig_file ?= choice of defconfig (use null for defconfig or a file
 		if you like custom .config to be used)
