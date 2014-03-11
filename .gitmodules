@@ -4,9 +4,6 @@
 [submodule "busybox"]
 	path = busybox
 	url = git://busybox.net/busybox.git
-[submodule "omap-u-boot-utils"]
-	path = omap-u-boot-utils
-	url = git://github.com/nmenon/omap-u-boot-utils.git
 [submodule "linux-2.6"]
 	path = linux-2.6
 	url = git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
