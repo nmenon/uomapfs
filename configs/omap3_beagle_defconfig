@@ -1,5 +1,5 @@
 #
-# Build options for OMAP3530 beagle/3730 beagleXM
+# Build options for OMAP3530 beagle/3730 beagle-XM
 #
 ARCH ?= arm
 CROSS_COMPILE ?= arm-none-linux-gnueabi-
@@ -14,7 +14,7 @@ bootloader ?=  u-boot
 bootloader_defconfig ?= omap3_beagle_config
 bootloader_image ?= 
 bootloader_image_location ?= u-boot.img
-bootloader_env ?= configs/omap3_beaglexm_uEnv.txt
+bootloader_env ?= configs/uEnv.txt
 
 spl_bootloader ?=  u-boot
 spl_bootloader_defconfig ?= omap3_beagle_config
