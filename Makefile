@@ -176,6 +176,8 @@ busymkdir: .config
 	done
 	$(Q)rm -f $(target_fs_dir)/d
 	$(Q)ln -s /sys/kernel/debug $(target_fs_dir)/d
+	$(Q)ln -s /sys/devices/system/cpu/cpu0/cpufreq/ $(target_fs_dir)/cpufreq
+	$(Q)ln -s /sys/devices/system/cpu/cpu0/cpuidle/ $(target_fs_dir)/cpuidle
 
 # Ensure that everything is built before we build ramdisk - e.g. tests/utils etc.
 ramdisk: all
